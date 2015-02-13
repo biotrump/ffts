@@ -8293,7 +8293,7 @@ if test "${enable_static+set}" = set; then :
     yes) enable_static=yes ;;
     no) enable_static=no ;;
     *)
-     enable_static=no
+     enable_static=yes
       # Look at the argument we got.  We use all the common list separators.
       lt_save_ifs="$IFS"; IFS="${IFS}$PATH_SEPARATOR,"
       for pkg in $enableval; do
