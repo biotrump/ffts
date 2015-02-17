@@ -1,10 +1,10 @@
 /*
- 
+
  This file is part of FFTS -- The Fastest Fourier Transform in the South
-  
+
  Copyright (c) 2012, Anthony M. Blake <amb@anthonix.com>
- Copyright (c) 2012, The University of Waikato 
- 
+ Copyright (c) 2012, The University of Waikato
+
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -40,13 +40,25 @@
 
 #include "ffts.h"
 
-#ifdef HAVE_NEON 
+#ifdef HAVE_NEON
 	#include <arm_neon.h>
 #endif
 #ifdef HAVE_SSE
 	#include <xmmintrin.h>
 #endif
+void ffts_free_1d_real(ffts_plan_t *p);
 
+/* input size : FORWARD FFT, size = N = 2^a for real part only
+ * 				no imaginary part is needed!
+ * 				Inverse FFT, size = (N / 2 + 1) * 2
+ * 				The frequency domain has real and imaginary parts and
+ * 				only the first half of real and imaginary parts are used for inverse 1d FFT.
+ * 				The second half parts are mirror of the first half, because it's real FFT.
+ * output size : FORWARD FFT (N / 2 + 1) * 2
+ * 				 The frequency domain has real and imaginary parts and
+ * 				 only the first half of real and imaginary parts are used.
+ *				 inverse FFT N : this is the real part in time domain
+ */
 ffts_plan_t *ffts_init_1d_real(size_t N, int sign);
 
 #endif

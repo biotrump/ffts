@@ -1,10 +1,10 @@
 /*
- 
+
  This file is part of FFTS -- The Fastest Fourier Transform in the South
-  
- Copyright (c) 2013, Michael J. Cree <mcree@orcon.net.nz> 
+
+ Copyright (c) 2013, Michael J. Cree <mcree@orcon.net.nz>
  Copyright (c) 2012, 2013, Anthony M. Blake <amb@anthonix.com>
- 
+
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -107,7 +107,7 @@
     t1[0] = din[4]; t1[1] = din[5];
     t2[0] = din[2]; t2[1] = din[3];
     t3[0] = din[6]; t3[1] = din[7];
-        
+
     t4[0] = t0[0] + t1[0]; t4[1] = t0[1] + t1[1];
     t5[0] = t0[0] - t1[0]; t5[1] = t0[1] - t1[1];
     t6[0] = t2[0] + t3[0]; t6[1] = t2[1] + t3[1];
@@ -128,7 +128,7 @@
     t1[0] = din[4]; t1[1] = din[5];
     t2[0] = din[2]; t2[1] = din[3];
     t3[0] = din[6]; t3[1] = din[7];
-        
+
     t4[0] = t0[0] + t1[0]; t4[1] = t0[1] + t1[1];
     t5[0] = t0[0] - t1[0]; t5[1] = t0[1] - t1[1];
     t6[0] = t2[0] + t3[0]; t6[1] = t2[1] + t3[1];

@@ -1,10 +1,10 @@
 /*
- 
+
  This file is part of FFTS -- The Fastest Fourier Transform in the South
-  
+
  Copyright (c) 2012, Anthony M. Blake <amb@anthonix.com>
- Copyright (c) 2012, The University of Waikato 
- 
+ Copyright (c) 2012, The University of Waikato
+
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ void ffts_static_rec_i(ffts_plan_t *p, float *data, size_t N) {
   	if(N == p->N) {
   		neon_static_x8_t_i(data, N, ws);
   	}else{
-  		neon_static_x8_i(data, N, ws); 
+  		neon_static_x8_i(data, N, ws);
   	}
 
 	}else if(N==16){
@@ -72,7 +72,7 @@ void ffts_static_rec_f(ffts_plan_t *p, float *data, size_t N) {
   	if(N == p->N) {
   		neon_static_x8_t_f(data, N, ws);
   	}else{
-  		neon_static_x8_f(data, N, ws); 
+  		neon_static_x8_f(data, N, ws);
   	}
 
 	}else if(N==16){
@@ -83,9 +83,9 @@ void ffts_static_rec_f(ffts_plan_t *p, float *data, size_t N) {
 
 void ffts_static_transform_f(ffts_plan_t *p, const void *in, void *out) {
 
-	if(__builtin_ctzl(p->N) & 1) 
+	if(__builtin_ctzl(p->N) & 1)
 		neon_static_o_f(p, in, out);
-	else 
+	else
 		neon_static_e_f(p, in, out);
 	ffts_static_rec_f(p, out, p->N);
 }
@@ -93,9 +93,9 @@ void ffts_static_transform_f(ffts_plan_t *p, const void *in, void *out) {
 
 void ffts_static_transform_i(ffts_plan_t *p, const void *in, void *out) {
 
-	if(__builtin_ctzl(p->N) & 1) 
+	if(__builtin_ctzl(p->N) & 1)
 		neon_static_o_i(p, in, out);
-	else 
+	else
 		neon_static_e_i(p, in, out);
 	ffts_static_rec_i(p, out, p->N);
 }

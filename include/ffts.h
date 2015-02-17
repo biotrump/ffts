@@ -1,7 +1,7 @@
 /*
- 
+
  This file is part of FFTS.
-  
+
  Copyright (c) 2012, Anthony M. Blake
  All rights reserved.
 
@@ -28,7 +28,7 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
-
+//export API
 #ifndef __FFTS_H__
 #define __FFTS_H__
 
@@ -63,6 +63,31 @@ ffts_plan_t *ffts_init_nd_real(int rank, size_t *Ns, int sign);
 
 void ffts_execute(ffts_plan_t * , const void *input, void *output);
 void ffts_free(ffts_plan_t *);
+
+#ifndef PI
+#define PI 3.1415926535897932384626433832795028841971693993751058209
+#endif
+
+/**
+* The sign to use for a forward/backward FFT transform.
+*/
+#define	FORWARD 			(-1)
+#define	BACKWARD 			(1)
+
+//#define	STATIC_TRIGONO_TABLE	1
+#define TRIG_TABLE_SIZE		(1 << 16)	//delta = 2PI/64K
+#define	TRIG_RAD_UNIT		(2.0f*(PI)/(TRIG_TABLE_SIZE))
+#define	STATIC_TRIGONO_TABLE	(1)
+extern float *COS_TAB;
+extern float *SIN_TAB;
+
+//#define	_COS(x)		COS_TAB[(int)((x)/TRIG_RAD_UNIT)]
+//#define	_SIN(x)		SIN_TAB[(int)((x)/TRIG_RAD_UNIT)]
+__inline float _COS(float x) { return COS_TAB[(int)((x)/TRIG_RAD_UNIT)]; }
+__inline float _SIN(float x) { return SIN_TAB[(int)((x)/TRIG_RAD_UNIT)]; }
+
+//__inline float _COS(float x) { return 0.0f; }
+//__inline float _SIN(float x) { return 1.0f; }
 
 #ifdef __cplusplus
 }  /* extern "C" */

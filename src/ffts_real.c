@@ -1,10 +1,10 @@
 /*
- 
+
  This file is part of FFTS -- The Fastest Fourier Transform in the South
-  
+
  Copyright (c) 2012, Anthony M. Blake <amb@anthonix.com>
- Copyright (c) 2012, The University of Waikato 
- 
+ Copyright (c) 2012, The University of Waikato
+
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -71,12 +71,12 @@ void ffts_execute_1d_real(ffts_plan_t *p, const void *vin, void *vout) {
 												"vdup.32 d27, d17[1]\n\t"
 												"vdup.32 d24, d16[0]\n\t"
 												"vdup.32 d25, d17[0]\n\t"
-												
+
 												"vdup.32 d30, d23[1]\n\t"
 												"vdup.32 d31, d22[1]\n\t"
 												"vdup.32 d28, d23[0]\n\t"
 												"vdup.32 d29, d22[0]\n\t"
-												
+
 												"vmul.f32 q13, q13, q10\n\t"
 												"vmul.f32 q15, q15, q9\n\t"
 												"vmul.f32 q12, q12, q10\n\t"
@@ -90,7 +90,7 @@ void ffts_execute_1d_real(ffts_plan_t *p, const void *vin, void *vout) {
 												"vneg.f32 d31, d31\n\t"
 												"vtrn.32 d26, d27\n\t"
 												"vtrn.32 d30, d31\n\t"
-												
+
 												"vadd.f32 q12, q12, q14\n\t"
 												"vadd.f32 q13, q13, q15\n\t"
 												"vadd.f32 q12, q12, q13\n\t"
@@ -108,12 +108,12 @@ void ffts_execute_1d_real(ffts_plan_t *p, const void *vin, void *vout) {
 //	out[2*N-2*i] = out[2*i];
 //	out[2*N-2*i+1] = -out[2*i+1];
 
-#endif	
+#endif
 	}
-	
+
 	out[N] = buf[0] - buf[1];
 	out[N+1] = 0.0f;
-	
+
 }
 
 void ffts_execute_1d_real_inv(ffts_plan_t *p, const void *vin, void *vout) {
@@ -123,12 +123,12 @@ void ffts_execute_1d_real_inv(ffts_plan_t *p, const void *vin, void *vout) {
 	float *A = p->A;
 	float *B = p->B;
 	size_t N = p->N;
-	
+
 	float *p_buf0 = in;
 	float *p_buf1 = in + N - 2;
-	
+
 	float *p_out = buf;
-	
+
 	size_t i;
 #ifdef __ARM_NEON__
 	for(i=0;i<N/2;i+=2) {
@@ -142,12 +142,12 @@ void ffts_execute_1d_real_inv(ffts_plan_t *p, const void *vin, void *vout) {
 												"vdup.32 d27, d17[1]\n\t"
 												"vdup.32 d24, d16[0]\n\t"
 												"vdup.32 d25, d17[0]\n\t"
-												
+
 												"vdup.32 d30, d23[1]\n\t"
 												"vdup.32 d31, d22[1]\n\t"
 												"vdup.32 d28, d23[0]\n\t"
 												"vdup.32 d29, d22[0]\n\t"
-												
+
 												"vmul.f32 q13, q13, q10\n\t"
 												"vmul.f32 q15, q15, q9\n\t"
 												"vmul.f32 q12, q12, q10\n\t"
@@ -161,7 +161,7 @@ void ffts_execute_1d_real_inv(ffts_plan_t *p, const void *vin, void *vout) {
 												"vneg.f32 d29, d29\n\t"
 												"vtrn.32 d26, d27\n\t"
 												"vtrn.32 d28, d29\n\t"
-												
+
 												"vadd.f32 q12, q12, q14\n\t"
 												"vsub.f32 q13, q13, q15\n\t"
 												"vadd.f32 q12, q12, q13\n\t"
@@ -179,29 +179,41 @@ void ffts_execute_1d_real_inv(ffts_plan_t *p, const void *vin, void *vout) {
 		buf[2*i+1] = in[2*i+1]*A[2*i] - in[2*i]*A[2*i+1] - in[N-2*i]*B[2*i+1] - in[N-2*i+1]*B[2*i];
 #endif
 }
-	
+
 	p->plans[0]->transform(p->plans[0], buf, out);
-	
+
 }
 
+/* input size : FORWARD FFT, size = N = 2^a for real part only
+ * 				no imaginary part is needed!
+ * 				Inverse FFT, size = (N / 2 + 1) * 2
+ * 				The frequency domain has real and imaginary parts and
+ * 				only the first half of real and imaginary parts are used for inverse 1d FFT.
+ * 				The second half parts are mirror of the first half, because it's real FFT.
+ * output size : FORWARD FFT (N / 2 + 1) * 2
+ * 				 The frequency domain has real and imaginary parts and
+ * 				 only the first half of real and imaginary parts are used.
+ *				 inverse FFT N : this is the real part in time domain
+ */
 ffts_plan_t *ffts_init_1d_real(size_t N, int sign) {
 	ffts_plan_t *p = malloc(sizeof(ffts_plan_t));
 
 	if(sign < 0) p->transform = &ffts_execute_1d_real;
 	else         p->transform = &ffts_execute_1d_real_inv;
-	
+
 	p->destroy = &ffts_free_1d_real;
 	p->N = N;
 	p->rank = 1;
 	p->plans = malloc(sizeof(ffts_plan_t **) * 1);
 
-	p->plans[0] = ffts_init_1d(N/2, sign); 
+	p->plans[0] = ffts_init_1d(N/2, sign);
 
 	p->buf = valloc(sizeof(float) * 2 * ((N/2) + 1));
 
 	p->A = valloc(sizeof(float) * N);
 	p->B = valloc(sizeof(float) * N);
 
+#ifndef STATIC_TRIGONO_TABLE
   if(sign < 0) {
 		int i;
 		for (i = 0; i < N/2; i++) {
@@ -219,7 +231,25 @@ ffts_plan_t *ffts_init_1d_real(size_t N, int sign) {
 			p->B[2 * i + 1] = 1.0 * (1.0 * cos (2.0f * PI / (double) (N) * (double) i));
 		}
   }
-	
+#else
+  if(sign < 0) {
+		int i;
+		for (i = 0; i < N/2; i++) {
+			p->A[2 * i]     = 0.5 * (1.0 - _SIN(2.0f * PI / (double) (N) * (double) i));
+			p->A[2 * i + 1] = 0.5 * (-1.0 * _COS(2.0f * PI / (double) (N) * (double) i));
+			p->B[2 * i]     = 0.5 * (1.0 + _SIN(2.0f * PI / (double) (N) * (double) i));
+			p->B[2 * i + 1] = 0.5 * (1.0 * _COS(2.0f * PI / (double) (N) * (double) i));
+		}
+	}else{
+		int i;
+		for (i = 0; i < N/2; i++) {
+			p->A[2 * i]     = 1.0 * (1.0 - _SIN(2.0f * PI / (double) (N) * (double) i));
+			p->A[2 * i + 1] = 1.0 * (-1.0 * _COS(2.0f * PI / (double) (N) * (double) i));
+			p->B[2 * i]     = 1.0 * (1.0 + _SIN(2.0f * PI / (double) (N) * (double) i));
+			p->B[2 * i + 1] = 1.0 * (1.0 * _COS(2.0f * PI / (double) (N) * (double) i));
+		}
+  }
+#endif
 	return p;
 }
 

@@ -1,10 +1,10 @@
 /*
- 
+
  This file is part of FFTS -- The Fastest Fourier Transform in the South
-  
+
  Copyright (c) 2012, Anthony M. Blake <amb@anthonix.com>
- Copyright (c) 2012, The University of Waikato 
- 
+ Copyright (c) 2012, The University of Waikato
+
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@
 
 void ffts_execute(ffts_plan_t *p, const void *  in, void *  out) {
 
-//TODO: Define NEEDS_ALIGNED properly instead 
+//TODO: Define NEEDS_ALIGNED properly instead
 #if defined(HAVE_SSE) || defined(HAVE_NEON)
 	if(((int)in % 16) != 0) {
 		LOG("ffts_execute: input buffer needs to be aligned to a 128bit boundary\n");
@@ -73,7 +73,7 @@ void ffts_free(ffts_plan_t *p) {
 }
 
 void ffts_free_1d(ffts_plan_t *p) {
-	
+
 	size_t i;
 
 	if(p->ws) {
@@ -103,19 +103,19 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 	}
 
 	ffts_plan_t *p = malloc(sizeof(ffts_plan_t));
-	size_t leafN = 8;	
-	size_t i;	
+	size_t leafN = 8;
+	size_t i;
 
 #ifdef __arm__
 //#ifdef HAVE_NEON
 	V MULI_SIGN;
-	
+
 	if(sign < 0) MULI_SIGN = VLIT4(-0.0f, 0.0f, -0.0f, 0.0f);
 	else         MULI_SIGN = VLIT4(0.0f, -0.0f, 0.0f, -0.0f);
-//#endif 
+//#endif
 #else
 	V MULI_SIGN;
-	
+
 	if(sign < 0) MULI_SIGN = VLIT4(-0.0f, 0.0f, -0.0f, 0.0f);
 	else         MULI_SIGN = VLIT4(0.0f, -0.0f, 0.0f, -0.0f);
 #endif
@@ -140,13 +140,13 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 #else
 		ffts_init_is(p, N, leafN, 1);
 #endif
-		
+
 		p->i0 = N/leafN/3+1;
 		p->i1 = N/leafN/3;
 		if((N/leafN) % 3 > 1) p->i1++;
 		p->i2 = N/leafN/3;
-		
-		#ifdef __arm__	
+
+		#ifdef __arm__
 		#ifdef HAVE_NEON
 		p->i0/=2;
 		p->i1/=2;
@@ -170,6 +170,7 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 
 		p->is = NULL;
 		p->offsets = NULL;
+		printf("FFT firstpass_n_x, N=%d, sign=%d\n", N, sign);
 	}
 
 		int hardcoded = 0;
@@ -181,17 +182,17 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 		if(n_luts >= 32) n_luts = 0;
 
 //		fprintf(stderr, "n_luts = %zu\n", n_luts);
-		
+
 		cdata_t *w;
 
 		int n = leafN*2;
 		if(hardcoded) n = 8;
-		
+
 		size_t lut_size = 0;
 
 		for(i=0;i<n_luts;i++) {
 			if(!i || hardcoded) {
-			#ifdef __arm__ 
+			#ifdef __arm__
 				if(N <= 32) lut_size += n/4 * 2 * sizeof(cdata_t);
 				else lut_size += n/4 * sizeof(cdata_t);
 			#else
@@ -207,9 +208,9 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 			}
 			n *= 2;
 		}
-		
+
 //		lut_size *= 16;
-		
+
 	//	fprintf(stderr, "lut size = %zu\n", lut_size);
 		if(n_luts) {
 			p->ws = FFTS_MALLOC(lut_size,32);
@@ -222,15 +223,15 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 
 		n = leafN*2;
 		if(hardcoded) n = 8;
-		
+
 		#ifdef HAVE_NEON
 			V neg = (sign < 0) ? VLIT4(0.0f, 0.0f, 0.0f, 0.0f) : VLIT4(-0.0f, -0.0f, -0.0f, -0.0f);
 		#endif
-		
+
 		for(i=0;i<n_luts;i++) {
-			p->ws_is[i] = w - (cdata_t *)p->ws;	
-			//fprintf(stderr, "LUT[%zu] = %d @ %08x - %zu\n", i, n, w, p->ws_is[i]);	
-			
+			p->ws_is[i] = w - (cdata_t *)p->ws;
+			//fprintf(stderr, "LUT[%zu] = %d @ %08x - %zu\n", i, n, w, p->ws_is[i]);
+
 			if(!i || hardcoded) {
 				cdata_t *w0 = FFTS_MALLOC(n/4 * sizeof(cdata_t), 32);
 
@@ -253,7 +254,7 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 							V re, im;
 							re = VDUPRE(temp0);
 							im = VDUPIM(temp0);
-							#ifdef HAVE_NEON 
+							#ifdef HAVE_NEON
 								im = VXOR(im, MULI_SIGN);
 								//im = IMULI(sign>0, im);
 							#else
@@ -322,7 +323,7 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 				#ifdef __arm__
 					//w = FFTS_MALLOC(n/8 * 3 * sizeof(cdata_t), 32);
 					float *fw = (float *)w;
-					#ifdef HAVE_NEON	
+					#ifdef HAVE_NEON
 						VS temp0, temp1, temp2;
 						for(j=0;j<n/8;j+=4) {
 							temp0 = VLD2(fw0 + j*2);
@@ -400,10 +401,11 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 	p->lastlut = w;
 	p->n_luts = n_luts;
 #ifdef DYNAMIC_DISABLED
-	if(sign < 0) { 
-		if(N >= 32) p->transform = ffts_static_transform_f; 
+	printf("FFT ffts_static_transform_x\n");
+	if(sign < 0) {
+		if(N >= 32) p->transform = ffts_static_transform_f;
 	}else{
-		if(N >= 32) p->transform = ffts_static_transform_i; 
+		if(N >= 32) p->transform = ffts_static_transform_i;
 	}
 
 #else
@@ -414,3 +416,85 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 }
 
 // vim: set autoindent noexpandtab tabstop=3 shiftwidth=3:
+/* Fast way to find exponent of nearest superior power of 2
+ * http://stackoverflow.com/questions/5242533/fast-way-to-find-exponent-of-nearest-superior-power-of-2
+ * a == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(a - 1)
+ *
+ * Builtin GCC Functions -
+ * int __builtin_clz (unsigned int x); count the number of leading zero’s in variable.
+ * int __builtin_ctz (unsigned int x); determines the count of trailing zero
+ * 										in the binary representation of a numberOfLeadingZeros
+ * int __builtin_popcount (unsigned int x); the number of one’s in the binary representation of a number
+ * n : the size to be evaluated
+ * return : 0 or 2's exponential which is equal to n or greater and nearest to n.
+ */
+unsigned find_best_N_pow2(unsigned n)
+{
+	unsigned r=0;
+	printf("n=%d\n", n);
+	printf("__builtin_clz=%d\n", __builtin_clz(n));
+	printf("__builtin_ctz=%d\n", __builtin_ctz(n));
+	printf("__builtin_popcount=%d\n", __builtin_popcount(n));
+	if(n == 0 ) r=0;
+	else if(1 == __builtin_popcount(n)) r=n;	//2^n
+	else {
+		r= 1 << (32 - __builtin_clz(n)) ;
+	}
+	printf("%d=>%d\n", n, r);
+	return r;
+}
+
+/* n : the number of the frequency items (FFT)
+ * input : real, imaginary, real, imaginary ... interleaving format
+ * output : power magnitude of (real ^2 + imaginary^2)
+ *
+ */
+void ffts_pow_mag(int n, float* input, float* output)
+{
+	int i;
+
+	//TODO : openMP parallel or openCL parallel computing
+	for(i = 0 ; i < n ; i ++){
+		output[i] = input[i << 1 ] * input[i << 1 ] + input[(i << 1) + 1 ] * input[(i << 1) +1 ];
+	}
+}
+
+/*
+ * If memory is not the limitation, cosine and sine are table-driven
+ * angle are non-zero integer, since cos is even function and sine is odd function
+ * so they are symmetric function.
+ */
+float *COS_TAB;
+float *SIN_TAB;
+
+int static_trigono_tab_init(int size)
+{
+#ifdef HAVE_SSE
+	float __attribute__ ((aligned(32))) *COS_TAB = _mm_malloc(TRIG_TABLE_SIZE * sizeof(float), 32);
+  float __attribute__ ((aligned(32))) *SIN_TAB = _mm_malloc(TRIG_TABLE_SIZE * sizeof(float), 32);
+#else
+	float __attribute__ ((aligned(32))) *COS_TAB = valloc(TRIG_TABLE_SIZE * sizeof(float));
+  float __attribute__ ((aligned(32))) *SIN_TAB = valloc(TRIG_TABLE_SIZE * sizeof(float));
+#endif
+  int i;
+  for(i=0; i < TRIG_TABLE_SIZE ; i ++){
+	COS_TAB[i]= cos(i*TRIG_RAD_UNIT);
+	SIN_TAB[i]= sin(i*TRIG_RAD_UNIT);
+  }
+  return !!COS_TAB && !!SIN_TAB;
+}
+
+void static_trigono_tab_free(void)
+{
+#ifdef HAVE_NEON
+	if(COS_TAB)
+		_mm_free(COS_TAB);
+	if(SIN_TAB)
+		_mm_free(SIN_TAB);
+#else
+	if(COS_TAB)
+		free(COS_TAB);
+	if(SIN_TAB)
+		free(SIN_TAB);
+#endif
+}
