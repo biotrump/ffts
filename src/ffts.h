@@ -55,6 +55,18 @@
 
 #define PI 3.1415926535897932384626433832795028841971693993751058209
 
+/**
+* The sign to use for a forward/backward FFT transform.
+*/
+#define	FORWARD 			(-1)
+#define	BACKWARD 			(1)
+#define TRIG_TABLE_SIZE		(1 << 16)	//delta = 2PI/64K
+#define	TRIG_RAD_UNIT		(2.0f*(PI)/(TRIG_TABLE_SIZE))
+//#define	STATIC_TRIGONO_TABLE	(1)
+#define	_COS(x)		COS_TAB[(int)((x)/TRIG_RAD_UNIT)]
+#define	_SIN(x)		SIN_TAB[(int)((x)/TRIG_RAD_UNIT)]
+extern float *COS_TAB;
+extern float *SIN_TAB;
 static const __attribute__ ((aligned(64))) float w_data[16] = {
 	0.70710678118654757273731092936941,		0.70710678118654746171500846685376,
 	-0.70710678118654757273731092936941,	-0.70710678118654746171500846685376,
@@ -66,9 +78,21 @@ static const __attribute__ ((aligned(64))) float w_data[16] = {
 	0.0f,									0.70710678118654746171500846685376
 };
 
+/*
 __INLINE float W_re(float N, float k) { return cos(-2.0f * PI * k / N); }
 __INLINE float W_im(float N, float k) { return sin(-2.0f * PI * k / N); }
 
+*/
+/* cosine is even function, f(-x) = f(x)
+ * sine is odd function, f(-x) = -f(x)
+ */
+#ifndef STATIC_TRIGONO_TABLE
+__INLINE float W_re(float N, float k) { return cos(2.0f * PI * k / N); }
+__INLINE float W_im(float N, float k) { return -sin(2.0f * PI * k / N); }
+#else
+__INLINE float W_re(float N, float k) { return _COS(2.0f * PI * k / N); }
+__INLINE float W_im(float N, float k) { return -_SIN(2.0f * PI * k / N); }
+#endif
 typedef size_t transform_index_t;
 
 //typedef void (*transform_func_t)(float *data, size_t N, float *LUT);
@@ -182,5 +206,11 @@ struct _ffts_plan_t {
 void ffts_free(ffts_plan_t *);
 ffts_plan_t *ffts_init_1d(size_t N, int sign); 
 void ffts_execute(ffts_plan_t *, const void *, void *);
+//GCC only
+unsigned find_best_N_pow2(unsigned n);
+void ffts_pow_mag(int n, float* input, float* output);
+
+int static_trigono_tab_init(int size);
+void static_trigono_tab_free(void);
 #endif
 // vim: set autoindent noexpandtab tabstop=3 shiftwidth=3:

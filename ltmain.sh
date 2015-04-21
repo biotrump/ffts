@@ -9430,6 +9430,9 @@ relink_command=\"$relink_command\""
       # Do a symbolic link so that the libtool archive can be found in
       # LD_LIBRARY_PATH before the program is installed.
       func_show_eval '( cd "$output_objdir" && $RM "$outputname" && $LN_S "../$outputname" "$outputname" )' 'exit $?'
+      #CMAKE can only know static ar file .a, not libtool .la, so cp libffts.a to upper lib
+      #cp src/.lib/libffts.a ../lib/libffts-ARCH.a
+      func_show_eval '( $RM -r "../lib" && $MKDIR "../lib" && $CP "$output_objdir/$old_library" "../lib/$libname-$ARCH.$libext" )' 'exit $?'
       ;;
     esac
     exit $EXIT_SUCCESS

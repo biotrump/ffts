@@ -31,6 +31,12 @@
 
 */
 
+/*
+ * _nd means n dimension Fourier Transform
+ * _2d
+ * _3d.... _nd
+ *
+ */
 #include "ffts_nd.h"
 
 #ifdef HAVE_NEON
