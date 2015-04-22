@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Compiles ffts for Android
 # Make sure you have NDK_ROOT defined in .bashrc or .bash_profile
 # Modify INSTALL_DIR to suit your situation
@@ -28,9 +28,6 @@ INSTALL_DIR="`pwd`/java/android/bin"
 PLATFORM=android-14
 #TOOL="4.6"
 TOOL="4.8"
-
-cp Makefile.am.and Makefile.am
-cp tests/Makefile.am.and tests/Makefile.am
 
 case $(uname -s) in
   Darwin)
@@ -84,20 +81,45 @@ export AM_ANDROID_EXTRA="-llog -fPIE -pie"
 #export LDFLAGS="-mhard-float -D_NDK_MATH_NO_SOFTFP=1 -march=armv7-a -mfloat-abi=hard"
 #export CFLAGS="-mhard-float -D_NDK_MATH_NO_SOFTFP=1 -march=armv7-a -mfloat-abi=hard"
 mkdir -p $INSTALL_DIR
+
+#mkdir a build folder
+echo build_${ARCH}
+if [ -d build_${ARCH} ];then
+pushd build_${ARCH}
+rm -rf *
+popd
+else
+mkdir build_${ARCH}
+fi
+
+pushd build_${ARCH}
+
+#clone the upper repo but discard .git
+git clone --depth=1 .. .
+rm -rf .git .gitignore
+
+cp Makefile.am.and Makefile.am
+cp tests/Makefile.am.and tests/Makefile.am
+
 #./configure --enable-neon --build=${CONFBUILD} --host=${CONFTARG} --prefix=$INSTALL_DIR LIBS="-lc -lgcc"
 ./configure --enable-neon --build=${CONFBUILD} --host=${CONFTARG}
 
 automake --add-missing
-make clean
 make
-#recover these auto-gen files
 
-#git checkout Makefile.in
-#git checkout aclocal.m4
-#git checkout config.h.in
-#git checkout java/Makefile.in
-#git checkout src/Makefile.in
-#git checkout tests/Makefile.in
+popd
+
+#ln build_${ARCH}/libffts-x86.a to lib
+if [ ! -d lib ];then
+mkdir lib
+fi
+
+if [ -f lib/libffts-${ARCH}.a ];then
+rm lib/libffts-${ARCH}.a
+fi
+
+ln -s `pwd`/build_${ARCH}/lib/libffts-${ARCH}.a lib/libffts-${ARCH}.a
+
 
 #make install
 export ANDROID_HOME=/home/thomas/aosp/4.4.2_r2/prebuilts/devtools

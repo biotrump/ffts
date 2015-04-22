@@ -21,6 +21,9 @@ ffts.pc
 stamp-h1
 tests/test
 
+build_x86
+build_arm
+
 java/android/local.properties
 java/android/gen/*
 java/android/obj/*

@@ -1,16 +1,40 @@
 #~/bin/bash
 export ARCH=x86
-cp Makefile.am.x86 Makefile.am
-cp tests/Makefile.am.x86 tests/Makefile.am
+#check if build_x86 exists,
+#if it's build_x86, rmdir and copy a fresh one and rebuild again
+#mkdir ../build_$ARCH
+#cp -rf * ../build_x86
+#mv ../build_x86 .
+echo build_${ARCH}
+if [ -d build_${ARCH} ];then
+pushd build_${ARCH}
+rm -rf *
+popd
+else
+mkdir build_${ARCH}
+fi
+pushd build_${ARCH}
+#clone the upper repo but discard .git
+git clone --depth=1 .. .
+rm -rf .git .gitignore
 
+cp Makefile.am.${ARCH} Makefile.am
+cp tests/Makefile.am.${ARCH} tests/Makefile.am
+
+#confiure and build
 ./configure --enable-sse --enable-single
 automake --add-missing
 make
-#recover these auto-gen files
-#git checkout Makefile.in
-#git checkout aclocal.m4
-#git checkout config.h.in
-#git checkout java/Makefile.in
-#git checkout src/Makefile.in
-#git checkout tests/Makefile.in
-#git checkout configure
+
+popd
+
+#ln build_${ARCH}/libffts-x86.a to lib
+if [ ! -d lib ];then
+mkdir lib
+fi
+
+if [ -f lib/libffts-${ARCH}.a ];then
+rm lib/libffts-${ARCH}.a
+fi
+
+ln -s `pwd`/build_${ARCH}/lib/libffts-${ARCH}.a lib/libffts-${ARCH}.a
