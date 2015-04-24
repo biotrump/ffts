@@ -125,6 +125,7 @@ ln -s `pwd`/build_${ARCH}/lib/libffts-${ARCH}.a lib/libffts-${ARCH}.a
 export ANDROID_HOME=/home/thomas/aosp/4.4.2_r2/prebuilts/devtools
 export ANDROID_SWT=/home/thomas/aosp/4.4.2_r2/prebuilts/tools/linux-x86_64/swt
 
+if [0] ; then
 if [ -z "$ANDROID_HOME" ] ; then
     echo ""
     echo " No ANDROID_HOME defined"
@@ -142,4 +143,4 @@ else
     echo " `pwd`/java/android"
     echo
 fi
-exit 0
+fi
