@@ -431,10 +431,12 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign) {
 unsigned find_best_N_pow2(unsigned n)
 {
 	unsigned r=0;
+	/*
 	printf("n=%d\n", n);
 	printf("__builtin_clz=%d\n", __builtin_clz(n));
 	printf("__builtin_ctz=%d\n", __builtin_ctz(n));
 	printf("__builtin_popcount=%d\n", __builtin_popcount(n));
+	*/
 	if(n == 0 ) r=0;
 	else if(1 == __builtin_popcount(n)) r=n;	//2^n
 	else {
