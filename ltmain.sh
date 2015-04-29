@@ -1385,7 +1385,7 @@ func_infer_tag ()
       case $@ in
       # Blanks in the command may have been stripped by the calling shell,
       # but not from the CC environment variable when configure was run.
-      " $CC "* | "$CC "* | " $CC_expanded "* | "$CC_expanded "* | \
+      " $CC "* | "$CC "* | " $CC_expanded "* | "$CC_expanded "* |  " $CCAS "* |\
       " $CC_quoted"* | "$CC_quoted "* | " $CC_quoted_expanded "* | "$CC_quoted_expanded "*) ;;
       # Blanks at the start of $base_compile will cause this to fail
       # if we don't check for them as well.
@@ -1402,7 +1402,7 @@ func_infer_tag ()
 	    CC_expanded=`func_echo_all $CC`
 	    CC_quoted_expanded=`func_echo_all $CC_quoted`
 	    case "$@ " in
-	    " $CC "* | "$CC "* | " $CC_expanded "* | "$CC_expanded "* | \
+	    " $CC "* | "$CC "* | " $CC_expanded "* | "$CC_expanded "* |  "$CCAS "* | \
 	    " $CC_quoted"* | "$CC_quoted "* | " $CC_quoted_expanded "* | "$CC_quoted_expanded "*)
 	      # The compiler in the base compile command matches
 	      # the one in the tagged configuration.
@@ -1418,7 +1418,7 @@ func_infer_tag ()
 	# line option must be used.
 	if test -z "$tagname"; then
 	  func_echo "unable to infer tagged configuration"
-	  func_fatal_error "specify a tag with \`--tag'"
+###	  func_fatal_error "specify a tag with \`--tag'"
 #	else
 #	  func_verbose "using $tagname tagged configuration"
 	fi

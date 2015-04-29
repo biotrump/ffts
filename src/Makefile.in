@@ -81,7 +81,7 @@ build_triplet = @build@
 host_triplet = @host@
 @DYNAMIC_DISABLED_TRUE@am__append_1 = ffts_static.c
 @DYNAMIC_DISABLED_FALSE@am__append_2 = codegen.c
-@HAVE_VFP_TRUE@am__append_3 = vfp.s 
+@HAVE_VFP_TRUE@am__append_3 = vfp.s
 @HAVE_NEON_TRUE@@HAVE_VFP_FALSE@am__append_4 = neon.s
 @DYNAMIC_DISABLED_TRUE@@HAVE_NEON_TRUE@@HAVE_VFP_FALSE@am__append_5 = neon_static_f.s neon_static_i.s
 @HAVE_NEON_FALSE@@HAVE_SSE_TRUE@@HAVE_VFP_FALSE@am__append_6 = sse.s
@@ -157,7 +157,7 @@ libffts_la_OBJECTS = $(am_libffts_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
-am__v_lt_1 = 
+am__v_lt_1 =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -165,11 +165,11 @@ am__v_P_1 = :
 AM_V_GEN = $(am__v_GEN_@AM_V@)
 am__v_GEN_ = $(am__v_GEN_@AM_DEFAULT_V@)
 am__v_GEN_0 = @echo "  GEN     " $@;
-am__v_GEN_1 = 
+am__v_GEN_1 =
 AM_V_at = $(am__v_at_@AM_V@)
 am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
-am__v_at_1 = 
+am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -183,7 +183,7 @@ LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 AM_V_CC = $(am__v_CC_@AM_V@)
 am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
 am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
+am__v_CC_1 =
 CCLD = $(CC)
 LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -191,15 +191,16 @@ LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
+am__v_CCLD_1 =
 CCASCOMPILE = $(CCAS) $(AM_CCASFLAGS) $(CCASFLAGS)
-LTCCASCOMPILE = $(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) \
+#LTCCASCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+LTCCASCOMPILE = $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=compile $(CCAS) $(AM_CCASFLAGS) \
 	$(CCASFLAGS)
 AM_V_CCAS = $(am__v_CCAS_@AM_V@)
 am__v_CCAS_ = $(am__v_CCAS_@AM_DEFAULT_V@)
 am__v_CCAS_0 = @echo "  CCAS    " $@;
-am__v_CCAS_1 = 
+am__v_CCAS_1 =
 SOURCES = $(libffts_la_SOURCES)
 DIST_SOURCES = $(am__libffts_la_SOURCES_DIST)
 am__can_run_installinfo = \
@@ -440,7 +441,7 @@ clean-libLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
-libffts.la: $(libffts_la_OBJECTS) $(libffts_la_DEPENDENCIES) $(EXTRA_libffts_la_DEPENDENCIES) 
+libffts.la: $(libffts_la_OBJECTS) $(libffts_la_DEPENDENCIES) $(EXTRA_libffts_la_DEPENDENCIES)
 	$(AM_V_CCLD)$(LINK) -rpath $(libdir) $(libffts_la_OBJECTS) $(libffts_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
