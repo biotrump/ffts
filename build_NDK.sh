@@ -22,7 +22,7 @@ CYGWIN*)
   *) echo $0: Unknown platform; exit
 esac
 
-INSTALL_DIR="`pwd`/java/android/bin"
+#INSTALL_DIR="`pwd`/java/android/bin"
 
 # Modify INSTALL_DIR to suit your situation
 #Lollipop	5.0 - 5.1	API level 21, 22
@@ -58,37 +58,48 @@ ANDROID_APIVER=android-14
 TOOL_VER="4.9"
 fi
 
+if [ $# -ge 1 ]; then
+	export ARCH=$1
+else
+#default
+	export ARCH=arm
+fi
+echo ARCH=$ARCH
+
 #default is arm
-arm=${arm:-arm}
-echo arm=$arm
-case arm in
+case $ARCH in
   arm)
     TARGPLAT=arm-linux-androideabi
     CONFTARG=arm-eabi
-    ARCH=arm
+	echo "Using: $NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin"
+	#export PATH="$NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:\
+	#$NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/${TARGPLAT}/bin/:$PATH"
+	export PATH="${NDK_ROOT}/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:$PATH"
   ;;
   x86)
     TARGPLAT=i686-linux-android
     CONFTARG=x86
-    ARCH=x86
+	echo "Using: $NDK_ROOT/toolchains/x86-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin"
+	export PATH="${NDK_ROOT}/toolchains/x86-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:$PATH"
+#specify assembler for x86 SSE3, but ffts's sse.s needs 64bit x86.
+#intel atom z2xxx and the old atoms are 32bit, so 64bit x86 in android can't work in
+#most atom devices.
+#http://forum.cvapp.org/viewtopic.php?f=13&t=423&sid=4c47343b1de899f9e1b0d157d04d0af1
+	export  CCAS="${TARGPLAT}-as"
+#	export  CCASFLAGS="--64 -march=i686+sse3"
+	export  CCASFLAGS="--64"
+
   ;;
   mips)
   ## probably wrong
     TARGPLAT=mipsel-linux-android
     CONFTARG=mips
-    ARCH=mips
   ;;
   *) echo $0: Unknown target; exit
 esac
-echo ARCH=$ARCH
 #: ${NDK_ROOT:?}
-
-echo "Using: $NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin"
-export ARCH
-#export PATH="$NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:\
-#$NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/${TARGPLAT}/bin/:$PATH"
-export PATH="${NDK_ROOT}/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:$PATH"
 echo $PATH
+
 export SYS_ROOT="${NDK_ROOT}/platforms/${ANDROID_APIVER}/arch-${ARCH}/"
 export CC="${TARGPLAT}-gcc --sysroot=$SYS_ROOT"
 export LD="${TARGPLAT}-ld"
@@ -96,7 +107,7 @@ export AR="${TARGPLAT}-ar"
 export RANLIB="${TARGPLAT}-ranlib"
 export STRIP="${TARGPLAT}-strip"
 #export CFLAGS="-Os -fPIE"
-export CFLAGS="-Os -fPIE --sysroot=$SYS_ROOT"
+export CFLAGS="-march=i686  -m32 -masm=intel  -msse3 -funroll-loops -mfpmath=sse -Os -fPIE --sysroot=$SYS_ROOT"
 export CXXFLAGS="-fPIE --sysroot=$SYS_ROOT"
 export FORTRAN="${TARGPLAT}-gfortran --sysroot=$SYS_ROOT"
 
@@ -109,46 +120,56 @@ export AM_ANDROID_EXTRA="-llog -fPIE -pie"
 #export LIBS="-lc -lgcc -llog -fPIE -pie"
 #export LDFLAGS="-mhard-float -D_NDK_MATH_NO_SOFTFP=1 -march=armv7-a -mfloat-abi=hard"
 #export CFLAGS="-mhard-float -D_NDK_MATH_NO_SOFTFP=1 -march=armv7-a -mfloat-abi=hard"
-mkdir -p $INSTALL_DIR
+#mkdir -p $INSTALL_DIR
 
 #mkdir a build folder
-echo build_${ARCH}
-if [ -d build_${ARCH} ];then
-pushd build_${ARCH}
+echo build_NDK_${ARCH}
+if [ -d build_NDK_${ARCH} ];then
+pushd build_NDK_${ARCH}
 rm -rf *
 popd
 else
-mkdir build_${ARCH}
+mkdir build_NDK_${ARCH}
 fi
-
-pushd build_${ARCH}
+pushd build_NDK_${ARCH}
 
 #clone the upper repo but discard .git
 git clone --depth=1 .. .
 rm -rf .git .gitignore
+#cp -rf .. .
 
 cp Makefile.am.and Makefile.am
 cp tests/Makefile.am.and tests/Makefile.am
 
 #./configure --enable-neon --build=${CONFBUILD} --host=${CONFTARG} --prefix=$INSTALL_DIR LIBS="-lc -lgcc"
-./configure --enable-neon --build=${CONFBUILD} --host=${CONFTARG}
+case $ARCH in
+  arm)
+  ./configure 	 --build=${CONFBUILD} --host=${CONFTARG}
+  ;;
+  x86)
+#  ./configure --enable-sse --enable-single --build=${CONFBUILD} --host=${CONFTARG}
+  ./configure --enable-sse --build=${CONFBUILD} --host=${CONFTARG}
+  ;;
+  mips)
+  ;;
+  *) echo $0: Unknown target; exit
+esac
 
 automake --add-missing
 make
 
 popd
 
-#ln build_${ARCH}/libffts-x86.a to lib
+#ln build_NDK_${ARCH}/libffts-x86.a to lib
 if [ ! -d lib ];then
 mkdir lib
 fi
 
-if [ -f lib/libffts-${ARCH}.a ];then
-rm lib/libffts-${ARCH}.a
+if [ -L lib/libffts-NDK-${ARCH}.a ];then
+	rm lib/libffts-NDK-${ARCH}.a
 fi
 
-ln -s `pwd`/build_${ARCH}/lib/libffts-${ARCH}.a lib/libffts-${ARCH}.a
-
+ln -s `pwd`/build_NDK_${ARCH}/lib/libffts-${ARCH}.a lib/libffts-NDK-${ARCH}.a
 
 #make install
 export ANDROID_HOME=${HOME}/aosp/4.4.2_r2/prebuilts/devtools

@@ -1418,7 +1418,9 @@ func_infer_tag ()
 	# line option must be used.
 	if test -z "$tagname"; then
 	  func_echo "unable to infer tagged configuration"
-	  func_fatal_error "specify a tag with \`--tag'"
+#even no tag, such as ccas, we still let it go.
+#	  func_fatal_error "specify a tag with \`--tag'"
+
 #	else
 #	  func_verbose "using $tagname tagged configuration"
 	fi

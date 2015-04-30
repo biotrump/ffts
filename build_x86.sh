@@ -30,11 +30,11 @@ popd
 
 #ln build_${ARCH}/libffts-x86.a to lib
 if [ ! -d lib ];then
-mkdir lib
+	mkdir lib
 fi
 
-if [ -f lib/libffts-${ARCH}.a ];then
-rm lib/libffts-${ARCH}.a
+if [ -L lib/libffts-${ARCH}.a ];then
+	rm -f lib/libffts-${ARCH}.a
 fi
 
 ln -s `pwd`/build_${ARCH}/lib/libffts-${ARCH}.a lib/libffts-${ARCH}.a
