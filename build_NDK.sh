@@ -107,7 +107,7 @@ export AR="${TARGPLAT}-ar"
 export RANLIB="${TARGPLAT}-ranlib"
 export STRIP="${TARGPLAT}-strip"
 #export CFLAGS="-Os -fPIE"
-export CFLAGS="-march=i686  -m32 -masm=intel  -msse3 -funroll-loops -mfpmath=sse -Os -fPIE --sysroot=$SYS_ROOT"
+export CFLAGS="-Os -fPIE --sysroot=$SYS_ROOT"
 export CXXFLAGS="-fPIE --sysroot=$SYS_ROOT"
 export FORTRAN="${TARGPLAT}-gfortran --sysroot=$SYS_ROOT"
 
@@ -144,7 +144,7 @@ cp tests/Makefile.am.and tests/Makefile.am
 #./configure --enable-neon --build=${CONFBUILD} --host=${CONFTARG} --prefix=$INSTALL_DIR LIBS="-lc -lgcc"
 case $ARCH in
   arm)
-  ./configure 	 --build=${CONFBUILD} --host=${CONFTARG}
+  ./configure --enable-neon --build=${CONFBUILD} --host=${CONFTARG}
   ;;
   x86)
 #  ./configure --enable-sse --enable-single --build=${CONFBUILD} --host=${CONFTARG}
