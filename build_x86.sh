@@ -1,19 +1,22 @@
 #~/bin/bash
+if [ -z "$TARGET_ARCH" ];then
+export TARGET_ARCH=x86_64
+fi
 export ARCH=x86
 #check if build_x86 exists,
 #if it's build_x86, rmdir and copy a fresh one and rebuild again
 #mkdir ../build_$ARCH
 #cp -rf * ../build_x86
 #mv ../build_x86 .
-echo build_${ARCH}
-if [ -d build_${ARCH} ];then
-pushd build_${ARCH}
+echo build_${TARGET_ARCH}
+if [ -d build_${TARGET_ARCH} ];then
+pushd build_${TARGET_ARCH}
 rm -rf *
 popd
 else
-mkdir build_${ARCH}
+mkdir -p build_${TARGET_ARCH}
 fi
-pushd build_${ARCH}
+pushd build_${TARGET_ARCH}
 #clone the upper repo but discard .git
 git clone --depth=1 .. .
 rm -rf .git .gitignore
@@ -28,13 +31,19 @@ make
 
 popd
 
-#ln build_${ARCH}/libffts-x86.a to lib
+#ln build_${TARGET_ARCH}/libffts-x86.a to lib
 if [ ! -d lib ];then
-	mkdir lib
+	mkdir -p lib
 fi
 
 if [ -L lib/libffts-${ARCH}.a ];then
 	rm -f lib/libffts-${ARCH}.a
 fi
 
-ln -s `pwd`/build_${ARCH}/lib/libffts-${ARCH}.a lib/libffts-${ARCH}.a
+if [ -n "$FFTS_OUT" ]; then
+	rm -f ${FFTS_OUT}/libffts-${TARGET_ARCH}.a
+	cp `pwd`/build_${TARGET_ARCH}/lib/libffts-${ARCH}.a ${FFTS_OUT}/libffts-${TARGET_ARCH}.a
+else
+	rm -f lib/libffts-${TARGET_ARCH}.a
+	ln -s `pwd`/build_${TARGET_ARCH}/lib/libffts-${ARCH}.a lib/libffts-${TARGET_ARCH}.a
+fi
