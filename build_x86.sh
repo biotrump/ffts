@@ -13,15 +13,12 @@ if [ -z "$FFTS_DIR" ]; then
 fi
 
 if [ -z "$FFTS_OUT" ]; then
-	echo build_${TARGET_ARCH}
-	if [ -d build_${TARGET_ARCH} ];then
-		pushd build_${TARGET_ARCH}
-		rm -rf *
-		popd
-	else
-		mkdir -p build_${TARGET_ARCH}
-	fi
 	export FFTS_OUT=build_${TARGET_ARCH}
+	if [ -d $FFTS_OUT ];then
+		rm -rf $FFTS_OUT/*
+	else
+		mkdir -p $FFTS_OUT
+	fi
 	local_build=1
 fi
 

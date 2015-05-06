@@ -38,9 +38,11 @@ esac
 #Gingerbread	2.3.3 - 2.3.7	API level 10
 #Gingerbread	2.3 - 2.3.2	API level 9, NDK 5
 #Froyo	2.2.x	API level 8, NDK 4
-export NDK_ROOT=${HOME}/NDK/android-ndk-r10d
-#gofortran is supported in r9
-#export NDK_ROOT=${HOME}/NDK/android-ndk-r9
+
+if [ -z "${NDK_ROOT}"  ]; then
+	export NDK_ROOT=${HOME}/NDK/android-ndk-r10d
+	#export NDK_ROOT=${HOME}/NDK/android-ndk-r9
+fi
 export ANDROID_NDK=${NDK_ROOT}
 
 if [[ ${NDK_ROOT} =~ .*"-r9".* ]]
@@ -122,21 +124,30 @@ export AM_ANDROID_EXTRA="-llog -fPIE -pie"
 #export CFLAGS="-mhard-float -D_NDK_MATH_NO_SOFTFP=1 -march=armv7-a -mfloat-abi=hard"
 #mkdir -p $INSTALL_DIR
 
-#mkdir a build folder
-echo build_NDK_${ARCH}
-if [ -d build_NDK_${ARCH} ];then
-pushd build_NDK_${ARCH}
-rm -rf *
-popd
-else
-mkdir build_NDK_${ARCH}
+if [ -z "$FFTS_DIR" ]; then
+	export FFTS_DIR=`pwd`
 fi
-pushd build_NDK_${ARCH}
+
+if [ -z "$FFTS_OUT" ]; then
+	export FFTS_OUT=build_${TARGET_ARCH}
+	if [ -d $FFTS_OUT ];then
+		rm -rf $FFTS_OUT/*
+	else
+		mkdir -p $FFTS_OUT
+	fi
+	local_build=1
+fi
+
+#if [ -f ${FFTS_OUT}/lib/libffts-${ARCH}.a ]; then
+rm -f ${FFTS_OUT}/lib/libffts-${ARCH}.a
+rm -f ${FFTS_OUT}/src/libffts.la
+#	rm -rf ${FFTS_OUT}/src/.libs
+#fi
 
 #clone the upper repo but discard .git
-git clone --depth=1 .. .
+git clone --depth=1 ${FFTS_DIR} ${FFTS_OUT}
+pushd ${FFTS_OUT}
 rm -rf .git .gitignore
-#cp -rf .. .
 
 cp Makefile.am.and Makefile.am
 cp tests/Makefile.am.and tests/Makefile.am
@@ -158,18 +169,25 @@ esac
 automake --add-missing
 make
 
-popd
+if [ "$local_build" == "1" ]; then
+	popd
 
-#ln build_NDK_${ARCH}/libffts-x86.a to lib
-if [ ! -d lib ];then
-mkdir lib
+	#ln build_${TARGET_ARCH}/libffts-x86.a to lib
+	if [ ! -d lib ];then
+		mkdir -p lib
+	fi
+
+	if [ -L lib/libffts-NDK-${TARGET_ARCH}.a ];then
+		rm -f lib/libffts-NDK-${TARGET_ARCH}.a
+	fi
+
+	ln -s ${FFTS_OUT}/lib/libffts-${ARCH}.a lib/libffts-NDK-${TARGET_ARCH}.a
+
+else
+	rm -f ${FFTS_OUT}/lib/libffts-NDK-${TARGET_ARCH}.a
+	ln -s ${FFTS_OUT}/lib/libffts-${ARCH}.a ${FFTS_OUT}/lib/libffts-NDK-${TARGET_ARCH}.a
+	popd
 fi
-
-if [ -L lib/libffts-NDK-${ARCH}.a ];then
-	rm lib/libffts-NDK-${ARCH}.a
-fi
-
-ln -s `pwd`/build_NDK_${ARCH}/lib/libffts-${ARCH}.a lib/libffts-NDK-${ARCH}.a
 
 #make install
 export ANDROID_HOME=${HOME}/aosp/4.4.2_r2/prebuilts/devtools
