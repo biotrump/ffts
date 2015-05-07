@@ -14,12 +14,15 @@ fi
 
 if [ -z "$FFTS_OUT" ]; then
 	export FFTS_OUT=build_${TARGET_ARCH}
-	if [ -d $FFTS_OUT ];then
-		rm -rf $FFTS_OUT/*
-	else
-		mkdir -p $FFTS_OUT
-	fi
 	local_build=1
+fi
+#check if it needs a clean build?
+if [ -d "$FFTS_OUT" ]; then
+	if [ ! -f $FFTS_OUT/.TOS-ubuntu ]; then
+		rm -rf $FFTS_OUT/*
+	fi
+else
+	mkdir -p $FFTS_OUT
 fi
 
 #if [ -f ${FFTS_OUT}/lib/libffts-${ARCH}.a ]; then
@@ -40,6 +43,7 @@ cp tests/Makefile.am.${ARCH} tests/Makefile.am
 ./configure --enable-sse --enable-single
 automake --add-missing
 make
+echo "ubuntu" >> $FFTS_OUT/.TOS-ubuntu
 
 if [ "$local_build" == "1" ]; then
 	popd
