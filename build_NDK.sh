@@ -205,12 +205,12 @@ else
 	mkdir -p $FFTS_OUT/$APP_ABI
 fi
 
-if [ ! -d ${FFTS_OUT}/lib/$APP_ABI ]; then
-	mkdir -p ${FFTS_OUT}/lib/$APP_ABI
+if [ ! -d ${FFTS_OUT}/libs/$APP_ABI ]; then
+	mkdir -p ${FFTS_OUT}/libs/$APP_ABI
 else
-	rm -f ${FFTS_OUT}/lib/$APP_ABI/libffts.a
+	rm -f ${FFTS_OUT}/libs/$APP_ABI/libffts.a
 fi
-#if [ -f ${FFTS_OUT}/lib/libffts-${ARCH}.a ]; then
+#if [ -f ${FFTS_OUT}/libs/libffts-${ARCH}.a ]; then
 
 rm -f $FFTS_OUT/$APP_ABI/src/.libs/libffts.a
 rm -f $FFTS_OUT/$APP_ABI/src/libffts.la
@@ -259,5 +259,5 @@ esac
 automake --add-missing
 make
 
-ln -s $FFTS_OUT/$APP_ABI/src/.libs/libffts.a ${FFTS_OUT}/lib/$APP_ABI/libffts.a
+ln -s $FFTS_OUT/$APP_ABI/src/.libs/libffts.a ${FFTS_OUT}/libs/$APP_ABI/libffts.a
 popd
