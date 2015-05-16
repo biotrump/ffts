@@ -1,6 +1,8 @@
 #!/bin/bash
 # Compiles ffts for Android
-# Make sure you have NDK_ROOT defined in .bashrc or .bash_profile
+# Make sure shell ENV NDK_ROOT defined
+# 'armeabi' ABI corresponds to an ARMv5TE based CPU with software floating point operations.
+#APP_ABI = all armeabi armeabi-v7a arm64-v8a x86 x86_64 mips mips64
 #export CMAKE_BUILD_TYPE "Debug"
 export CMAKE_BUILD_TYPE="Release"
 
@@ -45,6 +47,41 @@ if [ -z "${NDK_ROOT}"  ]; then
 fi
 export ANDROID_NDK=${NDK_ROOT}
 
+while [ $# -ge 1 ]; do
+	case $1 in
+	-ABI|-abi)
+		echo "\$1=-abi"
+		shift
+		APP_ABI=$1
+		shift
+		;;
+	-clean|-c|-C) #
+		echo "\$1=-c,-C,-clean"
+		clean_build=1
+		shift
+		;;
+	-l|-L)
+		echo "\$1=-l,-L"
+		local_build=1
+		;;
+	--help|-h|-H)
+		# The main case statement will give a usage message.
+		echo "$0 -c|-clean -abi=[armeabi, armeabi-v7a, armv8-64,mips,mips64el, x86,x86_64]"
+		exit 1
+		break
+		;;
+	-*)
+		echo "$0: unrecognized option $1" >&2
+		exit 1
+		;;
+	*)
+		break
+		;;
+	esac
+done
+echo APP_ABI=$APP_ABI
+export APP_ABI
+
 if [[ ${NDK_ROOT} =~ .*"-r9".* ]]
 then
 #ANDROID_APIVER=android-8
@@ -55,52 +92,78 @@ ANDROID_APIVER=android-14
 #gfortran is in r9d V4.8.0
 TOOL_VER="4.8.0"
 else
-#android 4.0.1 ICS and above
-ANDROID_APIVER=android-14
+#r10d : android 4.0.1 ICS and above
+if [ "$APP_ABI" = "arm64-v8a" -o \
+	"$APP_ABI" = "x86_64" ]; then
+	ANDROID_APIVER=android-21
+else
+	ANDROID_APIVER=android-14
+fi
 TOOL_VER="4.9"
 fi
 
-if [ $# -ge 1 ]; then
-	export ARCH=$1
-else
-#default
-	export ARCH=arm
-fi
-echo ARCH=$ARCH
-
 #default is arm
-case $ARCH in
-  arm)
+#export PATH="$NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:\
+#$NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/${TARGPLAT}/bin/:$PATH"
+case $APP_ABI in
+  armeabi)
     TARGPLAT=arm-linux-androideabi
-    CONFTARG=arm-eabi
-	echo "Using: $NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin"
-	#export PATH="$NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:\
-	#$NDK_ROOT/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/${TARGPLAT}/bin/:$PATH"
-	export PATH="${NDK_ROOT}/toolchains/${TARGPLAT}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:$PATH"
+    TOOLCHAINS=arm-linux-androideabi
+    ARCH=arm
+	#enable VFP only
   ;;
-  x86)
+  armeabi-v7a)
+    TARGPLAT=arm-linux-androideabi
+    TOOLCHAINS=arm-linux-androideabi
+    ARCH=arm
+	#enable NEON
+  ;;
+  arm64-v8a)
+    TARGPLAT=aarch64-linux-android
+    TOOLCHAINS=aarch64-linux-android
+    ARCH=arm64
+	#enable NEON
+  ;;
+  x86)#atom-32
     TARGPLAT=i686-linux-android
-    CONFTARG=x86
-	echo "Using: $NDK_ROOT/toolchains/x86-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin"
-	export PATH="${NDK_ROOT}/toolchains/x86-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:$PATH"
-#specify assembler for x86 SSE3, but ffts's sse.s needs 64bit x86.
-#intel atom z2xxx and the old atoms are 32bit, so 64bit x86 in android can't work in
-#most atom devices.
-#http://forum.cvapp.org/viewtopic.php?f=13&t=423&sid=4c47343b1de899f9e1b0d157d04d0af1
+    TOOLCHAINS=x86
+    ARCH=x86
+	#specify assembler for x86 SSE3, but ffts's sse.s needs 64bit x86.
+	#intel atom z2xxx and the old atoms are 32bit
+	#http://forum.cvapp.org/viewtopic.php?f=13&t=423&sid=4c47343b1de899f9e1b0d157d04d0af1
+	export  CCAS="${TARGPLAT}-as"
+	export  CCASFLAGS="--32 -march=i686+sse3"
+	echo "$APP_ABI is not supported in FFTS yet!!!"
+  ;;
+  x86_64)
+    TARGPLAT=x86_64-linux-android
+    TOOLCHAINS=x86_64
+    ARCH=x86_64
+    #specify assembler for x86 SSE3, but ffts's sse.s needs 64bit x86.
+	#atom-64 or x86-64 devices only.
+	#http://forum.cvapp.org/viewtopic.php?f=13&t=423&sid=4c47343b1de899f9e1b0d157d04d0af1
 	export  CCAS="${TARGPLAT}-as"
 #	export  CCASFLAGS="--64 -march=i686+sse3"
 	export  CCASFLAGS="--64"
-
   ;;
   mips)
-  ## probably wrong
-    TARGPLAT=mipsel-linux-android
-    CONFTARG=mips
+	## probably wrong
+	TARGPLAT=mipsel-linux-android
+	TOOLCHAINS=mipsel-linux-android
+	ARCH=mips
+	echo "$APP_ABI is not supported in FFTS yet!!!"
+  ;;
+  mips64)
+	## probably wrong
+	TARGPLAT=mips64el-linux-android
+	TOOLCHAINS=mips64el-linux-android
+	ARCH=mips64
+	echo "$APP_ABI is not supported in FFTS yet!!!"
   ;;
   *) echo $0: Unknown target; exit
 esac
-#: ${NDK_ROOT:?}
-echo $PATH
+echo "Using: $NDK_ROOT/toolchains/${TOOLCHAINS}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin"
+export PATH="${NDK_ROOT}/toolchains/${TOOLCHAINS}-${TOOL_VER}/prebuilt/${HOSTPLAT}/bin/:$PATH"
 
 export SYS_ROOT="${NDK_ROOT}/platforms/${ANDROID_APIVER}/arch-${ARCH}/"
 export CC="${TARGPLAT}-gcc --sysroot=$SYS_ROOT"
@@ -130,88 +193,71 @@ fi
 
 if [ -z "$FFTS_OUT" ]; then
 	export FFTS_OUT=build_${TARGET_ARCH}
-	local_build=1
-fi
-#check if it needs a clean build?
-if [ -d "$FFTS_OUT" ]; then
-	if [ ! -f $FFTS_OUT/.TOS-NDK ]; then
-		rm -rf $FFTS_OUT/*
-	fi
-else
-	mkdir -p $FFTS_OUT
 fi
 
+#check if it needs a clean build?
+
+if [ -d "$FFTS_OUT/$APP_ABI" ]; then
+	if [ -n "$clean_build" ]; then
+		rm -rf $FFTS_OUT/$APP_ABI/*
+	fi
+else
+	mkdir -p $FFTS_OUT/$APP_ABI
+fi
+
+if [ ! -d ${FFTS_OUT}/lib/$APP_ABI ]; then
+	mkdir -p ${FFTS_OUT}/lib/$APP_ABI
+else
+	rm -f ${FFTS_OUT}/lib/$APP_ABI/libffts.a
+fi
 #if [ -f ${FFTS_OUT}/lib/libffts-${ARCH}.a ]; then
-rm -f ${FFTS_OUT}/lib/libffts-${ARCH}.a
-rm -f ${FFTS_OUT}/src/libffts.la
+
+rm -f $FFTS_OUT/$APP_ABI/src/.libs/libffts.a
+rm -f $FFTS_OUT/$APP_ABI/src/libffts.la
 #	rm -rf ${FFTS_OUT}/src/.libs
 #fi
 
 #clone the upper repo but discard .git
-git clone --depth=1 ${FFTS_DIR} ${FFTS_OUT}
-pushd ${FFTS_OUT}
+git clone --depth=1 ${FFTS_DIR} ${FFTS_OUT}/$APP_ABI
+pushd ${FFTS_OUT}/$APP_ABI
 rm -rf .git .gitignore
 
 cp Makefile.am.and Makefile.am
 cp tests/Makefile.am.and tests/Makefile.am
 
-#./configure --enable-neon --build=${CONFBUILD} --host=${CONFTARG} --prefix=$INSTALL_DIR LIBS="-lc -lgcc"
-case $ARCH in
-  arm)
-  ./configure --enable-neon --build=${CONFBUILD} --host=${CONFTARG}
+#generating configure by configure.ac
+#http://www.delorie.com/gnu/docs/autoconf/autoconf_13.html
+autoconf
+
+case $APP_ABI in
+  armeabi)
+	./configure --enable-vfp  --host=armv5
   ;;
-  x86)
-#  ./configure --enable-sse --enable-single --build=${CONFBUILD} --host=${CONFTARG}
-  ./configure --enable-sse --build=${CONFBUILD} --host=${CONFTARG}
+  armeabi-v7a)
+    ./configure --enable-neon --host=armv7
+	#enable NEON
+  ;;
+  arm64-v8a)
+	./configure --enable-neon --host=armv8
+	#enable NEON
+  ;;
+  x86)#atom-32
+	./configure --enable-sse --enable-single --host=x86
+  ;;
+  x86_64)
+	./configure --enable-sse --enable-single
   ;;
   mips)
+	echo "$APP_ABI is not supported in FFTS yet!!!"
+  ;;
+  mips64)
+	echo "$APP_ABI is not supported in FFTS yet!!!"
   ;;
   *) echo $0: Unknown target; exit
 esac
 
 automake --add-missing
 make
-echo "$ARCH" >> $FFTS_OUT/.TOS-NDK
-if [ "$local_build" == "1" ]; then
-	popd
 
-	#ln build_${TARGET_ARCH}/libffts-x86.a to lib
-	if [ ! -d lib ];then
-		mkdir -p lib
-	fi
-
-	if [ -L lib/libffts-NDK-${TARGET_ARCH}.a ];then
-		rm -f lib/libffts-NDK-${TARGET_ARCH}.a
-	fi
-
-	ln -s ${FFTS_OUT}/lib/libffts-${ARCH}.a lib/libffts-NDK-${TARGET_ARCH}.a
-
-else
-	rm -f ${FFTS_OUT}/lib/libffts-NDK-${TARGET_ARCH}.a
-	ln -s ${FFTS_OUT}/lib/libffts-${ARCH}.a ${FFTS_OUT}/lib/libffts-NDK-${TARGET_ARCH}.a
-	popd
-fi
-
-#make install
-export ANDROID_HOME=${HOME}/aosp/4.4.2_r2/prebuilts/devtools
-export ANDROID_SWT=${HOME}/aosp/4.4.2_r2/prebuilts/tools/linux-x86_64/swt
-
-if [ -n "$JNI_SUPPORT" ];then
-if [ -z "$ANDROID_HOME" ] ; then
-    echo ""
-    echo " No ANDROID_HOME defined"
-    echo " Android JNI interfaces will not be built"
-    echo
-else
-    echo
-    echo "Using android_home ${ANDROID_HOME}"
-    echo
-    ( cd java/android ; ${ANDROID_HOME}/tools/android update lib-project -p . ) || exit 1
-    ( cd java/android/jni ; ${NDK_ROOT}/ndk-build V=1 ) || exit 1
-    ( cd java/android ; ant release ) || exit 1
-    echo
-    echo "Android library project location:"
-    echo " `pwd`/java/android"
-    echo
-fi
-fi
+ln -s $FFTS_OUT/$APP_ABI/src/.libs/libffts.a ${FFTS_OUT}/lib/$APP_ABI/libffts.a
+popd

@@ -38,6 +38,7 @@ rm -rf .git .gitignore
 
 cp Makefile.am.${ARCH} Makefile.am
 cp tests/Makefile.am.${ARCH} tests/Makefile.am
+autoconf
 
 #confiure and build
 ./configure --enable-sse --enable-single

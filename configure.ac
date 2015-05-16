@@ -82,15 +82,46 @@ fi
 AM_CONDITIONAL(ENABLE_JNI, test "$have_jni" = "yes")
 
 fpu=""
-AS_IF([test "$have_vfp" = "yes"],[fpu="-mfpu=vfp"],
-      [test "$have_neon" = "yes"],[fpu="-mfpu=neon"],
-      [])
+if test "$APP_ABI" = "arm64-v8a" ; then :
+#http://stackoverflow.com/questions/29851128/gcc-arm64-aarch64-unrecognized-command-line-option-mfpu-neon
+#Advanced SIMD (aka NEON) is mandatory for Aarch64, so no command line option
+#is needed to instruct the compiler to use NEON.
+	fpu=""
+elif test "$APP_ABI" = "armeabi-v7a" ; then :
+	if test "$have_vfp" = "yes"; then :
+	fpu="-mfpu=vfp3"
+	elif test "$have_neon" = "yes"; then :
+	fpu="-mfpu=neon"
+	fi
+else
+#armeabi
+	if test "$have_vfp" = "yes"; then :
+	fpu="-mfpu=vfp"
+	elif test "$have_neon" = "yes"; then :
+	fpu="-mfpu=neon"
+	fi
+fi
+
+#fpu=""
+#AS_IF([test "$have_vfp" = "yes"],[fpu="-mfpu=vfp"],
+#      [test "$have_neon" = "yes"],[fpu="-mfpu=neon"],
+#      [])
 
 AC_MSG_NOTICE([host is "${host}"])
 case "${host}" in
-	arm* )
-		CFLAGS="$CFLAGS -mfloat-abi=${float_abi} ${fpu} -std=c99"
-		CCASFLAGS="$CCASFLAGS -mfloat-abi=${float_abi} ${fpu}"
+	armv5* )
+		CFLAGS="$CFLAGS -march=armv5 -mfloat-abi=${float_abi} ${fpu} -std=c99"
+		CCASFLAGS="$CCASFLAGS -march=armv5 -mfloat-abi=${float_abi} ${fpu}"
+		;;
+	armv7* )
+		CFLAGS="$CFLAGS -march=armv7-a -mfloat-abi=${float_abi} ${fpu} -std=c99"
+		CCASFLAGS="$CCASFLAGS -march=armv7-a -mfloat-abi=${float_abi} ${fpu}"
+		;;
+	armv8* )
+		CFLAGS="$CFLAGS -march=armv8-a -mabi=lp64 ${fpu} -std=c99"
+		CCASFLAGS="$CCASFLAGS -march=armv8-a -mabi=lp64 ${fpu}"
+#		CFLAGS="$CFLAGS -march=armv7-a -mfpu=neon -std=c99"
+#		CCASFLAGS="$CCASFLAGS -march=armv7-a -mfpu=neon"
 		;;
 	*)
 		;;
