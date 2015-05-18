@@ -192,7 +192,8 @@ if [ -z "$FFTS_DIR" ]; then
 fi
 
 if [ -z "$FFTS_OUT" ]; then
-	export FFTS_OUT=build_${TARGET_ARCH}
+	export FFTS_OUT=$FFTS_DIR/build
+	export local_build=1
 fi
 
 #check if it needs a clean build?
