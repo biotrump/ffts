@@ -23,6 +23,7 @@ tests/test
 
 build_x86
 build_arm
+build
 
 java/android/local.properties
 java/android/gen/*

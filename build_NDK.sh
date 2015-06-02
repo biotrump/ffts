@@ -42,7 +42,7 @@ esac
 #Froyo	2.2.x	API level 8, NDK 4
 
 if [ -z "${NDK_ROOT}"  ]; then
-	export NDK_ROOT=${HOME}/NDK/android-ndk-r10d
+	export NDK_ROOT=${HOME}/NDK/android-ndk-r10e
 	#export NDK_ROOT=${HOME}/NDK/android-ndk-r9
 fi
 export ANDROID_NDK=${NDK_ROOT}
