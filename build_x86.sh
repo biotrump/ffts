@@ -13,27 +13,27 @@ if [ -z "$FFTS_DIR" ]; then
 fi
 
 if [ -z "$FFTS_OUT" ]; then
-	export FFTS_OUT=build_${TARGET_ARCH}
-	local_build=1
+	export FFTS_OUT=$FFTS_DIR/build
 fi
-#check if it needs a clean build?
-if [ -d "$FFTS_OUT" ]; then
-	if [ ! -f $FFTS_OUT/.TOS-ubuntu ]; then
-		rm -rf $FFTS_OUT/*
-	fi
-else
+
+#clean build
+if [ ! -d $FFTS_OUT ]; then
 	mkdir -p $FFTS_OUT
 fi
 
-#if [ -f ${FFTS_OUT}/lib/libffts-${ARCH}.a ]; then
-rm -f ${FFTS_OUT}/lib/libffts-${ARCH}.a
-rm -f ${FFTS_OUT}/src/libffts.la
-#	rm -rf ${FFTS_OUT}/src/.libs
-#fi
+if [ -d ${FFTS_OUT}/$TARGET_ARCH ]; then
+	rm -rf ${FFTS_OUT}/$TARGET_ARCH
+fi
+
+if [ ! -d ${FFTS_OUT}/libs/$TARGET_ARCH ]; then
+	mkdir -p ${FFTS_OUT}/libs/$TARGET_ARCH
+else
+	rm -rf ${FFTS_OUT}/libs/$TARGET_ARCH/*
+fi
 
 #clone the upper repo but discard .git
-git clone --depth=1 ${FFTS_DIR} ${FFTS_OUT}
-pushd ${FFTS_OUT}
+git clone --depth=1 ${FFTS_DIR} ${FFTS_OUT}/$TARGET_ARCH
+pushd ${FFTS_OUT}/$TARGET_ARCH
 rm -rf .git .gitignore
 
 cp Makefile.am.${ARCH} Makefile.am
@@ -44,23 +44,5 @@ autoconf
 ./configure --enable-sse --enable-single
 automake --add-missing
 make
-echo "ubuntu" >> $FFTS_OUT/.TOS-ubuntu
 
-if [ "$local_build" == "1" ]; then
-	popd
-
-	#ln build_${TARGET_ARCH}/libffts-x86.a to lib
-	if [ ! -d lib ];then
-		mkdir -p lib
-	fi
-
-	if [ -L lib/libffts-${TARGET_ARCH}.a ];then
-		rm -f lib/libffts-${TARGET_ARCH}.a
-	fi
-
-	ln -s ${FFTS_OUT}/lib/libffts-${ARCH}.a lib/libffts-${TARGET_ARCH}.a
-
-else
-	rm -f lib/libffts-${TARGET_ARCH}.a
-	ln -s ${FFTS_OUT}/lib/libffts-${ARCH}.a lib/libffts-${TARGET_ARCH}.a
-fi
+ln -s $FFTS_OUT/$TARGET_ARCH/src/.libs/libffts.a ${FFTS_OUT}/libs/$TARGET_ARCH/libffts.a
