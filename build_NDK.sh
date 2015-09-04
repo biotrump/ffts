@@ -199,9 +199,7 @@ fi
 #check if it needs a clean build?
 
 if [ -d "$FFTS_OUT/$APP_ABI" ]; then
-	if [ -n "$clean_build" ]; then
-		rm -rf $FFTS_OUT/$APP_ABI/*
-	fi
+	rm -rf $FFTS_OUT/$APP_ABI/*
 else
 	mkdir -p $FFTS_OUT/$APP_ABI
 fi
@@ -209,26 +207,31 @@ fi
 if [ ! -d ${FFTS_OUT}/libs/$APP_ABI ]; then
 	mkdir -p ${FFTS_OUT}/libs/$APP_ABI
 else
-	rm -f ${FFTS_OUT}/libs/$APP_ABI/libffts.a
+	rm -f ${FFTS_OUT}/libs/$APP_ABI/*
 fi
 #if [ -f ${FFTS_OUT}/libs/libffts-${ARCH}.a ]; then
 
-rm -f $FFTS_OUT/$APP_ABI/src/.libs/libffts.a
-rm -f $FFTS_OUT/$APP_ABI/src/libffts.la
+#rm -f $FFTS_OUT/$APP_ABI/src/.libs/libffts.a
+#rm -f $FFTS_OUT/$APP_ABI/src/libffts.la
 #	rm -rf ${FFTS_OUT}/src/.libs
 #fi
-
+#ls -alR $FFTS_OUT
+#read
 #clone the upper repo but discard .git
-git clone --depth=1 ${FFTS_DIR} ${FFTS_OUT}/$APP_ABI
+#git clone --depth=1 ${FFTS_DIR} ${FFTS_OUT}/$APP_ABI
+#rm -rf .git .gitignore
+#cp -rf ${FFTS_DIR}/* ${FFTS_OUT}/$APP_ABI/
+pwd
+ls
+read
+cp -rf * ${FFTS_OUT}/$APP_ABI/
 pushd ${FFTS_OUT}/$APP_ABI
-rm -rf .git .gitignore
-
 cp Makefile.am.and Makefile.am
 cp tests/Makefile.am.and tests/Makefile.am
 
-#generating configure by configure.ac
+#generating "configure" by configure.ac
 #http://www.delorie.com/gnu/docs/autoconf/autoconf_13.html
-autoconf
+#autoconf
 
 case $APP_ABI in
   armeabi)
@@ -261,4 +264,5 @@ automake --add-missing
 make
 
 ln -s $FFTS_OUT/$APP_ABI/src/.libs/libffts.a ${FFTS_OUT}/libs/$APP_ABI/libffts.a
+ls -l ${FFTS_OUT}/libs/$APP_ABI/
 popd

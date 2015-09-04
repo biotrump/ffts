@@ -32,6 +32,10 @@
 #ifndef __FFTS_H__
 #define __FFTS_H__
 
+#if defined (_MSC_VER) && (_MSC_VER >= 1020)
+#pragma once
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -39,9 +43,8 @@
 #include <stddef.h>
 
 #ifdef __cplusplus
-extern "C"
-{
-#endif /* __cplusplus */
+extern "C" {
+#endif
 
 #define POSITIVE_SIGN 1
 #define NEGATIVE_SIGN -1
@@ -53,10 +56,11 @@ ffts_plan_t *ffts_init_1d(size_t N, int sign);
 ffts_plan_t *ffts_init_2d(size_t N1, size_t N2, int sign);
 ffts_plan_t *ffts_init_nd(int rank, size_t *Ns, int sign);
 
-// For real transforms, sign == -1 implies a real-to-complex forwards tranform,
-// and sign == 1 implies a complex-to-real backwards transform
-// The output of a real-to-complex transform is N/2+1 complex numbers, where the
-// redundant outputs have been omitted.
+/* For real transforms, sign == -1 implies a real-to-complex forwards tranform,
+   and sign == 1 implies a complex-to-real backwards transform.
+   The output of a real-to-complex transform is N/2+1 complex numbers,
+   where the redundant outputs have been omitted.
+*/
 ffts_plan_t *ffts_init_1d_real(size_t N, int sign);
 ffts_plan_t *ffts_init_2d_real(size_t N1, size_t N2, int sign);
 ffts_plan_t *ffts_init_nd_real(int rank, size_t *Ns, int sign);
@@ -75,6 +79,7 @@ void ffts_free(ffts_plan_t *);
 #define	FORWARD 			(-1)
 #define	BACKWARD 			(1)
 
+#if 0
 //#define	STATIC_TRIGONO_TABLE	(1)
 #define TRIG_TABLE_SIZE		(1 << 16)	//delta = 2PI/64K
 #define	TRIG_RAD_UNIT		(2.0f*(PI)/(TRIG_TABLE_SIZE))
@@ -88,10 +93,10 @@ __inline float _SIN(float x) { return SIN_TAB[(int)((x)/TRIG_RAD_UNIT)]; }
 
 //__inline float _COS(float x) { return 0.0f; }
 //__inline float _SIN(float x) { return 1.0f; }
-
+#endif
 #ifdef __cplusplus
-}  /* extern "C" */
-#endif /* __cplusplus */
+}
+#endif
 
 #endif
 // vim: set autoindent noexpandtab tabstop=3 shiftwidth=3:
