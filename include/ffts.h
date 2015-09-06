@@ -49,6 +49,9 @@ extern "C" {
 #define POSITIVE_SIGN 1
 #define NEGATIVE_SIGN -1
 
+unsigned find_best_N_pow2(unsigned n);
+unsigned find_best_N_pow2f(unsigned *n);
+
 struct _ffts_plan_t;
 typedef struct _ffts_plan_t ffts_plan_t;
 
@@ -66,7 +69,6 @@ ffts_plan_t *ffts_init_2d_real(size_t N1, size_t N2, int sign);
 ffts_plan_t *ffts_init_nd_real(int rank, size_t *Ns, int sign);
 
 void ffts_pow_mag(int n, float* input, float* output);
-unsigned find_best_N_pow2(unsigned n);
 void ffts_execute(ffts_plan_t * , const void *input, void *output);
 void ffts_free(ffts_plan_t *);
 #ifndef PI

@@ -76,6 +76,54 @@ static const FFTS_ALIGN(64) float w_data[16] = {
 };
 #endif
 
+// vim: set autoindent noexpandtab tabstop=3 shiftwidth=3:
+/* Fast way to find exponent of nearest superior power of 2
+ * http://stackoverflow.com/questions/5242533/fast-way-to-find-exponent-of-nearest-superior-power-of-2
+ * a == 0 ? 0 : 32 - Integer.numberOfLeadingZeros(a - 1)
+ *
+ * Builtin GCC Functions -
+ * int __builtin_clz (unsigned int x); count the number of leading zero’s in variable.
+ * int __builtin_ctz (unsigned int x); determines the count of trailing zero
+ * 										in the binary representation of a numberOfLeadingZeros
+ * int __builtin_popcount (unsigned int x); the number of one’s in the binary representation of a number
+ * n : the size to be evaluated
+ * return : 0 or 2's exponential which is equal to n or greater and nearest to n.
+ */
+unsigned find_best_N_pow2(unsigned n)
+{
+	unsigned r=0;
+	/*
+	printf("n=%d\n", n);
+	printf("__builtin_clz=%d\n", __builtin_clz(n));
+	printf("__builtin_ctz=%d\n", __builtin_ctz(n));
+	printf("__builtin_popcount=%d\n", __builtin_popcount(n));
+	*/
+	if(n == 0 ) r=0;
+	else if(1 == __builtin_popcount(n)) r=n;	//2^n
+	else {
+		r= 1 << (32 - __builtin_clz(n)) ;
+	}
+	printf("%d=>%d, 2^%d\n", n, r, (32 - __builtin_clz(n)) );
+	return r;
+}
+
+unsigned find_best_N_pow2f(unsigned *n)
+{
+	if(n)
+		return find_best_N_pow2(*n);
+	return 0;
+}
+
+
+/*
+ * called from Fortran. called by address!
+ */
+ffts_plan_t*
+ffts_init_1d_realf(size_t *N, int *sign)
+{
+	return ffts_init_1d_real(N, sign);
+}
+
 static FFTS_INLINE int ffts_allow_execute(void *start, size_t len)
 {
     int result;
@@ -329,11 +377,11 @@ ffts_generate_luts(ffts_plan_t *p, size_t N, size_t leaf_N, int sign)
                 temp0 = V4SF2_LD(fw0 + j*2);
                 temp0.val[1] = V4SF_XOR(temp0.val[1], neg);
                 V4SF2_STORE_SPR(fw + j*2*3, temp0);
-                
+
                 temp1 = V4SF2_LD(fw1 + j*2);
                 temp1.val[1] = V4SF_XOR(temp1.val[1], neg);
                 V4SF2_STORE_SPR(fw + j*2*3 + 8,  temp1);
-                
+
                 temp2 = V4SF2_LD(fw2 + j*2);
                 temp2.val[1] = V4SF_XOR(temp2.val[1], neg);
                 V4SF2_STORE_SPR(fw + j*2*3 + 16, temp2);
