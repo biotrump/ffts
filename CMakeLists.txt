@@ -10,6 +10,17 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
 endif(NOT CMAKE_BUILD_TYPE)
 
+if("${CMAKE_BUILD_TYPE}" MATCHES "Debug")
+  add_definitions(-DDEBUG)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -fPIC")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fPIC -std=c99 -D_POSIX_C_SOURCE=200112L")
+else()
+  add_definitions(-DARMA_NO_DEBUG)
+  add_definitions(-DNDEBUG)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fPIC")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -O3 -fPIC -D_POSIX_C_SOURCE=200112L")
+endif()
+
 # common options
 option(ENABLE_NEON
   "Enables the use of NEON instructions." OFF
@@ -131,13 +142,13 @@ if(NOT CMAKE_CROSSCOMPILING)
     if(HAVE_XMMINTRIN_H)
       add_definitions(-DHAVE_SSE)
     endif(HAVE_XMMINTRIN_H)
-    
+
     # check if the platform has support for SSE2 intrinsics
     check_include_file(emmintrin.h HAVE_EMMINTRIN_H)
     if(HAVE_EMMINTRIN_H)
       add_definitions(-DHAVE_SSE2)
     endif(HAVE_EMMINTRIN_H)
-    
+
     # check if the platform has support for SSE3 intrinsics
     check_include_file(pmmintrin.h HAVE_PMMINTRIN_H)
     if(HAVE_PMMINTRIN_H)

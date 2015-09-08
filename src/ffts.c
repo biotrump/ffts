@@ -103,14 +103,20 @@ unsigned find_best_N_pow2(unsigned n)
 	else {
 		r= 1 << (32 - __builtin_clz(n)) ;
 	}
-	printf("%d=>%d, 2^%d\n", n, r, (32 - __builtin_clz(n)) );
+//	printf("%d=>%d, 2^%d\n", n, r, (32 - __builtin_clz(n)) );
 	return r;
 }
 
-unsigned find_best_N_pow2f(unsigned *n)
+/*
+ * !!! size_t in 64bit system is 8 bytes long,
+ * not 4 bytes.
+ */
+unsigned find_best_pow2f(size_t *n)
 {
-	if(n)
-		return find_best_N_pow2(*n);
+//	printf("%s:%d\n",__func__,*n);
+	if(n){
+		return find_best_N_pow2(*(int *)n);//type cast from size_t to int
+	}
 	return 0;
 }
 
@@ -121,7 +127,14 @@ unsigned find_best_N_pow2f(unsigned *n)
 ffts_plan_t*
 ffts_init_1d_realf(size_t *N, int *sign)
 {
-	return ffts_init_1d_real(N, sign);
+//	printf("%s:N=%ld,S=%ld\n",__func__,*N,*sign);
+	return ffts_init_1d_real(*N, *sign);
+}
+
+ffts_plan_t *ffts_init_1df(size_t *N, int *sign)
+{
+//	printf("%s:N=%ld,S=%ld\n",__func__,*N,*sign);
+	return ffts_init_1d(*N, *sign);
 }
 
 static FFTS_INLINE int ffts_allow_execute(void *start, size_t len)
@@ -209,15 +222,31 @@ void ffts_execute(ffts_plan_t *p, const void *in, void *out)
         LOG("ffts_execute: output buffer needs to be aligned to a 128bit boundary\n");
     }
 #endif
-
+//	printf("%s:p=%p,in=%p, out=%p\n",__func__,p,in,out);
     p->transform(p, (const float*) in, (float*) out);
+}
+
+void ffts_executef(void **p, const void *input, void *output)
+{
+	ffts_plan_t *pp=*p;
+//	printf("%s:%p,0x%x,%d\n",__func__,p,*p,*p);
+	ffts_execute(pp, input, output);
 }
 
 void ffts_free(ffts_plan_t *p)
 {
+//	printf(">>%s:p=%p\n",__func__,p);
     if (p) {
         p->destroy(p);
     }
+//    printf("<<%s\n",__func__);
+}
+
+void ffts_freef(void **p)
+{
+	ffts_plan_t *pp=*p;
+//	printf("%s:%p,%p\n",__func__,p,pp);
+	ffts_free(pp);
 }
 
 void ffts_free_1d(ffts_plan_t *p)
@@ -472,22 +501,25 @@ ffts_init_1d(size_t N, int sign)
     if (!p) {
         return NULL;
     }
-
+//printf("%s:p=%p\n",__func__,p);
     p->destroy = ffts_free_1d;
     p->N = N;
 
     if (N >= 32) {
         /* generate lookup tables */
         if (ffts_generate_luts(p, N, leaf_N, sign)) {
+			printf("luts failed\n");
             goto cleanup;
         }
 
         p->offsets = ffts_init_offsets(N, leaf_N);
+//		printf("p->offsets=%d\n",p->offsets);
         if (!p->offsets) {
             goto cleanup;
         }
 
         p->is = ffts_init_is(N, leaf_N, 1);
+//		printf("p->is=%p\n",p->is);
         if (!p->is) {
             goto cleanup;
         }
@@ -502,6 +534,8 @@ ffts_init_1d(size_t N, int sign)
         p->i0 /= 2;
         p->i1 /= 2;
 #endif
+
+//		printf("%s:sign=%d\n",__func__,sign);
 
 #ifdef DYNAMIC_DISABLED
         if (sign < 0) {
@@ -524,15 +558,16 @@ ffts_init_1d(size_t N, int sign)
             p->transform_size = 16384 + 2*N/8 * ffts_ctzl(N);
         }
 #endif
-
         /* allocate code/function buffer */
         p->transform_base = ffts_vmem_alloc(p->transform_size);
+//printf("%s:p->transform_base=%p\n",__func__,p->transform_base);
         if (!p->transform_base) {
             goto cleanup;
         }
 
         /* generate code */
         p->transform = ffts_generate_func_code(p, N, leaf_N, sign);
+//printf("%s:p->transform=%p\n",__func__,p->transform);
         if (!p->transform) {
             goto cleanup;
         }
@@ -576,10 +611,11 @@ ffts_init_1d(size_t N, int sign)
             break;
         }
     }
-
+//printf("<<%s:p=%p,%d\n",__func__,p,p);
     return p;
 
 cleanup:
     ffts_free_1d(p);
+//	printf("xxxx %s:p=%p\n",__func__,p);
     return NULL;
 }

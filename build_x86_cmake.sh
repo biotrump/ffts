@@ -1,8 +1,8 @@
 #!/bin/bash
 # Make sure you have NDK_ROOT defined in .bashrc or .bash_profile
 
-#export CMAKE_BUILD_TYPE "Debug"
-export CMAKE_BUILD_TYPE="Release"
+export CMAKE_BUILD_TYPE= "Debug"
+#export CMAKE_BUILD_TYPE="Release"
 
 #get cpu counts
 case $(uname -s) in
@@ -101,8 +101,14 @@ fi
 pushd ${FFTS_OUT}/$TARGET_ARCH
 
 #-DFFTS_TRIGO_LUT=1  ==> lookup table does not make good precision
-cmake -DFFTS_DIR:FILEPATH=${FFTS_DIR} -DFFTS_OUT:FILEPATH=${FFTS_OUT} \
+# -DHAVE_SSE3:BOOL=ON
+cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
 	-DDSPCORE_OUT:FILEPATH=${DSPCORE_OUT} -DDSPCORE_DIR:FILEPATH=${DSPCORE_DIR} \
+	-DFFTS_DIR:FILEPATH=${FFTS_DIR} -DFFTS_LIB_NAME=${FFTS_LIB_NAME} \
+	-DFFTS_OUT:FILEPATH=${FFTS_OUT} \
+	-DBUILD_FFTS_GENERIC=${BUILD_FFTS_GENERIC} -DBUILD_FFTS_VEC=${BUILD_FFTS_VEC} \
+	-DBUILD_FFTS_NEON=${BUILD_FFTS_NEON} -DBUILD_FFTS_CUDA=${BUILD_FFTS_CUDA} \
+	-DDISABLE_DYNAMIC_CODE:BOOL=ON -DENABLE_RUNTIME_DYNAMIC_CODE:BOOL=OFF \
 	${FFTS_DIR}
 
 ret=$?
@@ -127,7 +133,7 @@ pushd ${FFTS_OUT}
 mkdir -p libs/$TARGET_ARCH
 rm -rf libs/$TARGET_ARCH/*
 
-ln -s ${FFTS_OUT}/$TARGET_ARCH/lib/libffts.a libs/$TARGET_ARCH/
-
+#ln -s ${FFTS_OUT}/$TARGET_ARCH/lib/libffts.a libs/$TARGET_ARCH/
+ln -s ${FFTS_OUT}/$TARGET_ARCH/libffts_static.a libs/$TARGET_ARCH/libffts.a
 popd
 exit 0

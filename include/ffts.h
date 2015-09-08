@@ -48,14 +48,25 @@ extern "C" {
 
 #define POSITIVE_SIGN 1
 #define NEGATIVE_SIGN -1
+/**
+* The sign to use for a forward/backward FFT transform.
+*/
+#define	FORWARD 			(-1)
+#define	BACKWARD 		(1)
 
 unsigned find_best_N_pow2(unsigned n);
-unsigned find_best_N_pow2f(unsigned *n);
+
+/* !!!! called from fortran, call-by-address!!!
+ * !!!! size_t in 64bit system, it's 8 bytes long,
+ * so the data type in fortran should be 8 bytes, interger(c_long).
+ */
+unsigned find_best_pow2f(size_t *n);
 
 struct _ffts_plan_t;
 typedef struct _ffts_plan_t ffts_plan_t;
 
 ffts_plan_t *ffts_init_1d(size_t N, int sign);
+ffts_plan_t *ffts_init_1df(size_t *N, int *sign);
 ffts_plan_t *ffts_init_2d(size_t N1, size_t N2, int sign);
 ffts_plan_t *ffts_init_nd(int rank, size_t *Ns, int sign);
 
@@ -65,37 +76,20 @@ ffts_plan_t *ffts_init_nd(int rank, size_t *Ns, int sign);
    where the redundant outputs have been omitted.
 */
 ffts_plan_t *ffts_init_1d_real(size_t N, int sign);
+//called by fortran, called-by-address
+ffts_plan_t *ffts_init_1d_realf(size_t *N, int *sign);
 ffts_plan_t *ffts_init_2d_real(size_t N1, size_t N2, int sign);
 ffts_plan_t *ffts_init_nd_real(int rank, size_t *Ns, int sign);
 
 void ffts_pow_mag(int n, float* input, float* output);
 void ffts_execute(ffts_plan_t * , const void *input, void *output);
+void ffts_executef(void ** , const void *input, void *output);
 void ffts_free(ffts_plan_t *);
+void ffts_freef(void **);
 #ifndef PI
 #define PI 3.1415926535897932384626433832795028841971693993751058209
 #endif
 
-/**
-* The sign to use for a forward/backward FFT transform.
-*/
-#define	FORWARD 			(-1)
-#define	BACKWARD 			(1)
-
-#if 0
-//#define	STATIC_TRIGONO_TABLE	(1)
-#define TRIG_TABLE_SIZE		(1 << 16)	//delta = 2PI/64K
-#define	TRIG_RAD_UNIT		(2.0f*(PI)/(TRIG_TABLE_SIZE))
-extern float *COS_TAB;
-extern float *SIN_TAB;
-
-//#define	_COS(x)		COS_TAB[(int)((x)/TRIG_RAD_UNIT)]
-//#define	_SIN(x)		SIN_TAB[(int)((x)/TRIG_RAD_UNIT)]
-__inline float _COS(float x) { return COS_TAB[(int)((x)/TRIG_RAD_UNIT)]; }
-__inline float _SIN(float x) { return SIN_TAB[(int)((x)/TRIG_RAD_UNIT)]; }
-
-//__inline float _COS(float x) { return 0.0f; }
-//__inline float _SIN(float x) { return 1.0f; }
-#endif
 #ifdef __cplusplus
 }
 #endif
